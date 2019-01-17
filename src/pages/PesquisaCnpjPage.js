@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 
 import axios from 'axios';
 
+
 class PesquisaCnpjPage extends React.Component {
 
     constructor(props) {
