@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, Button, TextInput, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Button, TextInput, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import FormRow from '../components/FormRow';
 import Line from '../components/Line';
-import { setPesquisaCnpj, setDadosEmpresa, setDadosEmpresaCep } from '../actions';
+import { setPesquisaCnpj, setDadosEmpresa } from '../actions';
 import { connect } from 'react-redux';
 
 import axios from 'axios';
@@ -14,135 +14,132 @@ class PesquisaCnpjPage extends React.Component {
         super(props);
 
         this.state = {
-            pesquisando: false
+            temDadosEmpresa: false,
+            pesquisando: false,
+            messageError: ''
         }
     }
 
-  /*  searchCnpj = async (cnpj) => {
-        const { setDadosEmpresa, setDadosEmpresaCep } = this.props;
-
-        this.setState({
-            pesquisando: true
-        })
-
-        try {
-            const response = await axios.get('https://www.receitaws.com.br/v1/cnpj/28036967000142')
-
-            const { data } = response;
-            const { cep } = data;
-            const cepSemPontos = cep.replace(/[^\d]+/g,'');
-
-            const dadosEmpresa = {
-                nome: data.nome,
-                fantasia: data.fantasia,
-                situacao: data.situacao,
-                bairro: data.bairro,
-                logradouro: data.logradouro,
-                numero: data.numero,
-                cep: data.cep,
-                municipio: data.municipio,
-                uf: data.uf
-            }
-
-            setDadosEmpresa(dadosEmpresa)
-            try {
-                const response = await axios.get(`https://viacep.com.br/ws/${cepSemPontos}/json/`);
-
-                const { data } = response;
-
-                const dadosEmpresaCep = {
-                    complemento: data.complemento,
-                    ibge: data.ibge,
-                    gia: data.gia
-                }
-
-                setDadosEmpresaCep(dadosEmpresaCep)
-            } catch (e) {
-                console.log(e);
-            }
-        } catch (e) {
-            console.log(e);
-        }
-    }
-*/
     searchCnpj = (cnpj) => {
-        const { setDadosEmpresa, setDadosEmpresaCep } = this.props;
+        const { setDadosEmpresa, pesquisaCnpj } = this.props;
 
         this.setState({
-            pesquisando: true
+            pesquisando: true,
+            temDadosEmpresa: false
         })
 
-        axios.get('https://www.receitaws.com.br/v1/cnpj/28036967000142')
-        .then(response => {
-            const { data } = response;
-            const { cep } = data;
-            const cepSemPontos = cep.replace(/[^\d]+/g,'');
+        console.log(pesquisaCnpj)
 
-            const dadosEmpresaCnpj = {
-                nome: data.nome,
-                fantasia: data.fantasia,
-                situacao: data.situacao,
-                bairro: data.bairro,
-                logradouro: data.logradouro,
-                numero: data.numero,
-                cep: data.cep,
-                municipio: data.municipio,
-                uf: data.uf
-            }
-            // GET NA API DE PESQUISA DE CEPS
-            axios.get(`https://viacep.com.br/ws/${cepSemPontos}/json/`)
+        axios.get(`https://www.receitaws.com.br/v1/cnpj/${pesquisaCnpj}`)
             .then(response => {
                 const { data } = response;
-
-                const dadosEmpresaCep = {
-                    complemento: data.complemento,
-                    ibge: data.ibge,
-                    gia: data.gia
+                if (data.status == "ERROR") {
+                    this.setState({
+                        pesquisando: false,
+                        messageError: 'Erro do servidor: ' + data.message
+                    })
+                    return false;
                 }
 
-                const dadosEmpresa = Object.assign(dadosEmpresaCnpj, dadosEmpresaCep)
-                setDadosEmpresa(dadosEmpresa)
-            }).catch(e => console.log(e))
-        }).catch(e=> console.log(e))
+                const { cep } = data;
+                const cepSemPontos = cep.replace(/[^\d]+/g, '');
+
+                const dadosEmpresaCnpj = {
+                    nome: data.nome,
+                    fantasia: data.fantasia,
+                    situacao: data.situacao,
+                    bairro: data.bairro,
+                    logradouro: data.logradouro,
+                    numero: data.numero,
+                    cep: data.cep,
+                    municipio: data.municipio,
+                    uf: data.uf
+                }
+                // GET NA API DE PESQUISA DE CEPS
+                axios.get(`https://viacep.com.br/ws/${cepSemPontos}/json/`)
+                    .then(response => {
+                        const { data } = response;
+
+                        const dadosEmpresaCep = {
+                            complemento: data.complemento,
+                            ibge: data.ibge,
+                            gia: data.gia
+                        }
+
+                        const dadosEmpresa = Object.assign(dadosEmpresaCnpj, dadosEmpresaCep)
+                        setDadosEmpresa(dadosEmpresa)
+
+                        this.setState({
+                            pesquisando: false,
+                            temDadosEmpresa: true
+                        })
+                    }).catch(e => {
+                        this.setState({
+                            pesquisando: false,
+                            messageError: 'Erro no servidor de busca: ' + e
+                        })
+                        console.log(e)
+                    })
+            }).catch(e => {
+                this.setState({
+                    pesquisando: false,
+                    messageError: 'Erro no servidor de busca: ' + e
+                });
+                console.log(e);
+            })
     }
 
     render() {
         const { pesquisaCnpj, setPesquisaCnpj, dadosEmpresa } = this.props;
 
-        console.log(dadosEmpresa)
+        console.log(pesquisaCnpj)
+
         return (
-        <View style={ styles.container }>
-            <FormRow>
-                <TextInput
-                    style={ styles.input }
-                    keyboardType='numeric'
-                    value={ pesquisaCnpj }
-                    placeholder="Insira o CNPJ"
-                    onChangeText={ value => { setPesquisaCnpj(value); } }
+            <View style={styles.container}>
+                <FormRow>
+                    <TextInput
+                        style={styles.input}
+                        keyboardType='numeric'
+                        value={pesquisaCnpj}
+                        placeholder="Insira o CNPJ"
+                        onChangeText={value => { setPesquisaCnpj(value); }}
+                    />
+                </FormRow>
+                <Button
+                    title="Pesquisar"
+                    onPress={() => { this.searchCnpj(pesquisaCnpj) }}
+                    disabled={this.state.pesquisando === true ? true : false}
                 />
-            </FormRow>
-            <Button
-                title="Pesquisar"
-                onPress={ () => { this.searchCnpj(pesquisaCnpj) } }
-            />
-            { 
-                dadosEmpresa.nome
-                ?   
-                    <View>
-                        <View style={{ marginTop: 20, marginBottom: 20 }}>
-                            <Line label="Nome da Empresa:" content={ dadosEmpresa.nome }/>
-                            <Line label="Fantasia:" content={ dadosEmpresa.fantasia }/>
-                            <Line label="Situação:" content={ dadosEmpresa.situacao }/>
-                            
+
+                {
+                    this.state.temDadosEmpresa
+                        ?
+                        <View>
+                            <View style={{ marginTop: 20, marginBottom: 20 }}>
+                                <Line label="Nome da Empresa:" content={dadosEmpresa.nome} />
+                                <Line label="Fantasia:" content={dadosEmpresa.fantasia} />
+                                <Line label="Situação:" content={dadosEmpresa.situacao} />
+
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.buttonOpacity}
+                                onPress={() => this.props.navigation.navigate('EnderecoEmpresaPage', { dadosEmpresa: dadosEmpresa })}
+                            >
+                                <Text style={styles.buttonOpacityText}> Ver endereço </Text>
+                            </TouchableOpacity>
+
                         </View>
-                        <Button title="Ver endereço" onPress={ () => this.props.navigation.navigate('EnderecoEmpresaPage', { dadosEmpresa: dadosEmpresa }) }/>
-                    </View>
-                : this.state.pesquisando === false
-                ? null
-                : <ActivityIndicator size="large" color="#00ff00" />
-            }
-        </View>
-    )}
+                        : this.state.pesquisando === false
+                            ? this.state.messageError === ''
+                                ? null
+                                : <Text>{this.state.messageError}</Text>
+                            : <ActivityIndicator size="large" color="#00ff00" />
+                }
+
+            </View>
+        )
+    }
 }
 
 const styles = StyleSheet.create({
@@ -155,6 +152,14 @@ const styles = StyleSheet.create({
         paddingRight: 5,
         paddingBottom: 5,
     },
+    buttonOpacity: {
+        alignItems: 'center',
+        //backgroundColor: '#DDDDDD',
+        padding: 10,
+    },
+    buttonOpacityText: {
+        color: 'blue'
+    }
 })
 
 const mapStateToProps = state => {

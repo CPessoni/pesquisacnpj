@@ -54,7 +54,7 @@ class EnderecoEmpresaPage extends React.Component {
                         const km = distance / 1000;
 
                         this.setState({
-                            textoDistancia: 'A distância é de '+km+' km',
+                            textoDistancia: 'A distância é de ' + km + ' km',
                             calculando: false
                         })
                     }).catch(e => console.log(e))
@@ -90,11 +90,15 @@ class EnderecoEmpresaPage extends React.Component {
                             dadosEmpresa.municipio,
                             dadosEmpresa.uf
                         )}
+                        disabled={this.state.calculando === true ? true : false}
                     />
 
-                    { this.state.calculando
-                        ? <ActivityIndicator size="large" color="#00ff00" />
-                        : <Text style={ {padding: 10, fontSize: 20} }>{ this.state.textoDistancia }</Text>
+                    {this.state.calculando
+                        ? <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', padding: 15 }}>
+                            <ActivityIndicator size="large" color="#00ff00" />
+                            <Text>Calculando...</Text>
+                        </View>
+                        : <Text style={{ padding: 10, fontSize: 20 }}>{this.state.textoDistancia}</Text>
                     }
                 </View>
             </View>
