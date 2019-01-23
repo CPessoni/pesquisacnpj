@@ -1,15 +1,12 @@
 import React from 'react';
-import { View, Text, Button, TextInput, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Platform, View, Text, Button, TextInput, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import FormRow from '../components/FormRow';
 import Line from '../components/Line';
 import { setPesquisaCnpj, setDadosEmpresa } from '../actions';
 import { connect } from 'react-redux';
-
 import axios from 'axios';
 
-
 class PesquisaCnpjPage extends React.Component {
-
     constructor(props) {
         super(props);
 
@@ -28,12 +25,10 @@ class PesquisaCnpjPage extends React.Component {
             temDadosEmpresa: false
         })
 
-        console.log(pesquisaCnpj)
-
         axios.get(`https://www.receitaws.com.br/v1/cnpj/${pesquisaCnpj}`)
             .then(response => {
                 const { data } = response;
-                if (data.status == "ERROR") {
+                if (data.status === "ERROR") {
                     this.setState({
                         pesquisando: false,
                         messageError: 'Erro do servidor: ' + data.message
@@ -92,10 +87,12 @@ class PesquisaCnpjPage extends React.Component {
     render() {
         const { pesquisaCnpj, setPesquisaCnpj, dadosEmpresa } = this.props;
 
-        console.log(pesquisaCnpj)
-
         return (
             <View style={styles.container}>
+                { Platform.OS === 'web' &&
+                    <h1>Pesquisa de CNPJ</h1>
+                }
+
                 <FormRow>
                     <TextInput
                         style={styles.input}
@@ -136,7 +133,6 @@ class PesquisaCnpjPage extends React.Component {
                                 : <Text>{this.state.messageError}</Text>
                             : <ActivityIndicator size="large" color="#00ff00" />
                 }
-
             </View>
         )
     }

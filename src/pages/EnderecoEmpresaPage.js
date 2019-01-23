@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Button, ActivityIndicator, StyleSheet } from 'react-native';
+import { Platform, View, Text, Button, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import Line from '../components/Line';
 import Axios from 'axios';
@@ -67,6 +67,16 @@ class EnderecoEmpresaPage extends React.Component {
         const { dadosEmpresa } = this.props;
         return (
             <View style={styles.container}>
+                {
+                    Platform.OS === 'web' &&
+                    <TouchableOpacity
+                        style={styles.buttonOpacity}
+                        onPress={() => this.props.navigation.navigate('PesquisaCnpjPage')}
+                    >
+                        <Text style={styles.buttonOpacityText}> Voltar </Text>
+                    </TouchableOpacity>
+                }
+
                 <Line label="Rua:" content={dadosEmpresa.logradouro} />
                 <Line label="Número:" content={dadosEmpresa.numero} />
                 <Line label="Bairro:" content={dadosEmpresa.bairro} />
@@ -113,10 +123,16 @@ const styles = StyleSheet.create({
     session: {
         height: 50,
         backgroundColor: '#C5C5C5',
-        color: 'white',
         justifyContent: 'center',
         alignItems: 'center'
-    }
+    },
+    buttonOpacityText: {
+        color: 'blue'
+    },
+    buttonOpacity: {
+        alignItems: 'center',
+        padding: 10,
+    },
 })
 
 const mapStateToProps = state => {

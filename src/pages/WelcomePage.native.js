@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet, Image } from 'react-native';
+import { Platform, View, Text, Button, StyleSheet, Image } from 'react-native';
 
 const WelcomePage = props => {
     return (
@@ -7,16 +7,21 @@ const WelcomePage = props => {
             <View style={ styles.content }>
                 <Image
                     source={ require('../images/search.png') }
-                    style={ {aspectRatio: 1, width: 255} }
+                    style={ styles.imgSearch }
                 />
-                <Text style={ styles.welcomeText }>Seja bem vindo ao App de Pesquisa de CNPJ!</Text>
 
+                <Text style={ styles.welcomeText }>Seja bem vindo ao App de Pesquisa de CNPJ  Mobile!</Text>
                 
             </View>
             <View style={ styles.footer }>
                 <Button
                     title="Continuar..."
-                    onPress={ () => props.navigation.replace('PesquisaCnpjPage') }
+                    onPress={ () => {
+                        if(Platform.OS==='web')
+                            return props.navigation.navigate('PesquisaCnpjPage') 
+
+                        props.navigation.replace('PesquisaCnpjPage') 
+                    } }
                     clear
                 />
             </View>
@@ -45,6 +50,10 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 25,
         fontWeight: 'bold',
+    },
+    imgSearch: {
+        aspectRatio: 1,
+        width: 255,
     }
 })
 
