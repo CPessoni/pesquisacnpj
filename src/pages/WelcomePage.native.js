@@ -10,7 +10,7 @@ const WelcomePage = props => {
                     style={ styles.imgSearch }
                 />
 
-                <Text style={ styles.welcomeText }>Seja bem vindo ao App de Pesquisa de CNPJ  Mobile!</Text>
+                <Text style={ styles.welcomeText }>Seja bem vindo ao App de Pesquisa de CNPJ!</Text>
                 
             </View>
             <View style={ styles.footer }>
