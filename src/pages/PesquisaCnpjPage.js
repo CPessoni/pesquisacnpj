@@ -6,6 +6,8 @@ import { setPesquisaCnpj, setDadosEmpresa } from '../actions';
 import { connect } from 'react-redux';
 import axios from 'axios';
 
+import jsonp from 'jsonp-simple';
+
 class PesquisaCnpjPage extends React.Component {
     constructor(props) {
         super(props);
@@ -25,63 +27,80 @@ class PesquisaCnpjPage extends React.Component {
             temDadosEmpresa: false
         })
 
-        axios.get(`https://www.receitaws.com.br/v1/cnpj/${pesquisaCnpj}`)
-            .then(response => {
-                const { data } = response;
-                if (data.status === "ERROR") {
-                    this.setState({
-                        pesquisando: false,
-                        messageError: 'Erro do servidor: ' + data.message
-                    })
-                    return false;
-                }
+        if (pesquisaCnpj === '')
+            return this.setState({
+                pesquisando: false,
+                messageError: 'Insira um CNPJ'
+            })
 
-                const { cep } = data;
-                const cepSemPontos = cep.replace(/[^\d]+/g, '');
+        let busca = '';
 
-                const dadosEmpresaCnpj = {
-                    nome: data.nome,
-                    fantasia: data.fantasia,
-                    situacao: data.situacao,
-                    bairro: data.bairro,
-                    logradouro: data.logradouro,
-                    numero: data.numero,
-                    cep: data.cep,
-                    municipio: data.municipio,
-                    uf: data.uf
-                }
-                // GET NA API DE PESQUISA DE CEPS
-                axios.get(`https://viacep.com.br/ws/${cepSemPontos}/json/`)
-                    .then(response => {
-                        const { data } = response;
+        Platform.OS === 'web'
+            ? busca = jsonp(`https://www.receitaws.com.br/v1/cnpj/${pesquisaCnpj}`)
+            : busca = axios(`https://www.receitaws.com.br/v1/cnpj/${pesquisaCnpj}`)
 
-                        const dadosEmpresaCep = {
-                            complemento: data.complemento,
-                            ibge: data.ibge,
-                            gia: data.gia
-                        }
+        busca.then(response => {
+            let data = '';
 
-                        const dadosEmpresa = Object.assign(dadosEmpresaCnpj, dadosEmpresaCep)
-                        setDadosEmpresa(dadosEmpresa)
+            Platform.OS !== 'web'
+                ? data = response.data
+                : data = response
 
-                        this.setState({
-                            pesquisando: false,
-                            temDadosEmpresa: true
-                        })
-                    }).catch(e => {
-                        this.setState({
-                            pesquisando: false,
-                            messageError: 'Erro no servidor de busca: ' + e
-                        })
-                        console.log(e)
-                    })
-            }).catch(e => {
+            if (data.status === "ERROR") {
                 this.setState({
                     pesquisando: false,
-                    messageError: 'Erro no servidor de busca: ' + e
-                });
-                console.log(e);
-            })
+                    messageError: 'Erro do servidor: ' + data.message
+                })
+                return false;
+            }
+
+            const { cep } = data;
+            const cepSemPontos = cep.replace(/[^\d]+/g, '');
+
+            const dadosEmpresaCnpj = {
+                nome: data.nome,
+                fantasia: data.fantasia,
+                situacao: data.situacao,
+                bairro: data.bairro,
+                logradouro: data.logradouro,
+                numero: data.numero,
+                cep: data.cep,
+                municipio: data.municipio,
+                uf: data.uf
+            }
+            // GET NA API DE PESQUISA DE CEPS
+            axios.get(`https://viacep.com.br/ws/${cepSemPontos}/json/`)
+                .then(response => {
+                    const { data } = response;
+
+                    const dadosEmpresaCep = {
+                        complemento: data.complemento,
+                        ibge: data.ibge,
+                        gia: data.gia
+                    }
+
+                    const dadosEmpresa = Object.assign(dadosEmpresaCnpj, dadosEmpresaCep)
+                    setDadosEmpresa(dadosEmpresa)
+
+                    this.setState({
+                        pesquisando: false,
+                        temDadosEmpresa: true
+                    })
+                }).catch(e => {
+                    this.setState({
+                        pesquisando: false,
+                        messageError: 'Erro no servidor de busca: ' + e
+                    })
+                    console.log(e)
+                })
+        }).catch(e => {
+            this.setState({
+                pesquisando: false,
+                messageError: 'Erro no servidor de busca: ' + e
+            });
+
+            console.log(e);
+        })
     }
 
     render() {
@@ -89,7 +108,7 @@ class PesquisaCnpjPage extends React.Component {
 
         return (
             <View style={styles.container}>
-                { Platform.OS === 'web' &&
+                {Platform.OS === 'web' &&
                     <h1>Pesquisa de CNPJ</h1>
                 }
 
