@@ -25,8 +25,20 @@ class PesquisaCnpjPage extends React.Component {
             temDadosEmpresa: false
         })
 
-        axios.get(`https://www.receitaws.com.br/v1/cnpj/${pesquisaCnpj}`)
+        axios.get(`https://www.receitaws.com.br/v1/cnpj/${pesquisaCnpj}`, { 
+            method: 'GET',
+            mode: 'no-cors',
+            headers: {
+                'crossDomain': true,
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+            credentials: 'same-origin'
+          , })
             .then(response => {
+                console.log('cnpj passou')
                 const { data } = response;
                 if (data.status === "ERROR") {
                     this.setState({
@@ -80,7 +92,7 @@ class PesquisaCnpjPage extends React.Component {
                     pesquisando: false,
                     messageError: 'Erro no servidor de busca: ' + e
                 });
-                console.log(e);
+                console.log('Erro ao pesquisar por CNPJ: ', e);
             })
     }
 
